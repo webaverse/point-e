@@ -6,6 +6,8 @@ import torch
 import cv2
 import io
 
+import aspose.threed as a3d
+
 from point_e.diffusion.configs import DIFFUSION_CONFIGS, diffusion_from_config
 from point_e.models.configs import MODEL_CONFIGS, model_from_config
 from point_e.diffusion.sampler import PointCloudSampler
@@ -122,11 +124,16 @@ def generate():
 		)
 
 		# Write the mesh to a PLY file to import into some other program.
+		# OBS don't save as glb here! transform the ply
 		with open('mesh.ply', 'wb') as f:
 			mesh.write_ply(f)
 
 		# return send_from_directory('./', 'mesh.ply', as_attachment=True)
-		return send_file('mesh.ply', attachment_filename='mesh.ply')
+		# create scene for transform
+		scene = a3d.Scene.from_file('mesh.ply')
+		# save new file
+		scene.save('mesh.glb')
+		return send_file('./mesh.glb', as_attachment=True)
 
 	if fig is not None:
 		output = fig2img(fig)

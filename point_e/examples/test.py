@@ -46,7 +46,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
 
 # load girl.png
-generated_image = Image.open('girl2.png')
+generated_image = Image.open(arg)
 
 
 # In[4]:

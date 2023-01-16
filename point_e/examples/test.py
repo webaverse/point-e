@@ -119,14 +119,19 @@ print(samples.shape)
 
 pc = sampler.output_to_point_clouds(samples)[0]
 
-pc = pc.cpu()
-pc = pc.numpy()
-# convert to float32
-pc = pc.astype('float32')
 print(pc)
+print(pc.coords)
+print(pc.coords.shape)
+
+coords = pc.coords
+coords = coords.cpu()
+coords = coords.numpy()
+# convert to float32
+coords = coords.astype('float32')
+print(coords)
 # convery tp bytes
-pc_bytes = pc.tobytes()
-print(len(pc_bytes))
+coords_bytes = coords.tobytes()
+print(len(coords_bytes))
 # write to bytes.dat
 with open('./pointcloud.f32', 'wb') as f:
-    f.write(pc_bytes)
+    f.write(coords_bytes)

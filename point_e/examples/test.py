@@ -10,6 +10,8 @@
 # 1. using the same input noise?
 # 2. Using textual inversion? https://huggingface.co/docs/diffusers/training/text_inversion
 
+#convert girl.png -resize 512x512 -background white -gravity center -extent 512x512 girl2.png
+
 # In[1]:
 
 

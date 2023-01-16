@@ -117,14 +117,16 @@ for x in tqdm(sampler.sample_batch_progressive(batch_size=1, model_kwargs=dict(i
 
 print(samples.shape)
 
-samples = samples.cpu()
-samples = samples.numpy()
+pc = sampler.output_to_point_clouds(samples)[0]
+
+pc = pc.cpu()
+pc = pc.numpy()
 # convert to float32
-samples = samples.astype('float32')
-print(samples)
+pc = pc.astype('float32')
+print(pc)
 # convery tp bytes
-samples_bytes = samples.tobytes()
-print(len(samples_bytes))
+pc_bytes = pc.tobytes()
+print(len(pc_bytes))
 # write to bytes.dat
 with open('./pointcloud.f32', 'wb') as f:
-    f.write(samples_bytes)
+    f.write(pc_bytes)

@@ -10,7 +10,7 @@
 # 1. using the same input noise?
 # 2. Using textual inversion? https://huggingface.co/docs/diffusers/training/text_inversion
 
-#convert girl.png -resize 512x512 -background white -gravity center -extent 512x512 girl2.png
+# convert girl.png -resize 512x512 -background white -gravity center -extent 512x512 girl2.png
 
 # In[1]:
 
@@ -39,46 +39,31 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # In[3]:
 
 
-from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
+# from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
 
-# GLIDE 3B has been used // StableDiffusion 2 trained on LAION-5B
-pipe = StableDiffusionPipeline.from_pretrained(
-    #"CompVis/stable-diffusion-v1-4",
-    "stabilityai/stable-diffusion-2-1",
-    torch_dtype=torch.float16,
-).to(device)
-
-# Low GPU ram mode (but slower) 
-pipe.enable_attention_slicing()
-
-# Use the DPMSolverMultistepScheduler (DPM-Solver++) scheduler here instead
-pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
-pipe = pipe.to("cuda")
-
-prompt = "an armchair"
-prompt_details = ", solid white background, full body centered camera view, blender render, high resolution, standard light, no reflections"
-generated_image = pipe(prompt + prompt_details).images[0]
+# load girl.png
+generated_image = Image.open('girl2.png')
 
 
 # In[4]:
 
 
-plt.imshow(generated_image)
+# plt.imshow(generated_image)
 
 
 # In[5]:
 
 
-PILtoTensor = transforms.ToTensor()
+# PILtoTensor = trans#forms.ToTensor()
 #generated_image = PILtoTensor(generated_image)
 
-del pipe
+# del pipe
 
 
 # In[6]:
 
 
-torch.cuda.empty_cache()
+# torch.cuda.empty_cache()
 
 
 # ### img-to-pointcloud
@@ -129,74 +114,4 @@ sampler = PointCloudSampler(
 samples = None
 for x in tqdm(sampler.sample_batch_progressive(batch_size=1, model_kwargs=dict(images=[generated_image]))):
     samples = x
-
-
-# In[10]:
-
-
-samples.shape
-
-
-# In[16]:
-
-
-pc = sampler.output_to_point_clouds(samples)[0]
-fig = plot_point_cloud(pc, grid_size=2, fixed_bounds=((-0.75, -0.75, -0.75),(0.75, 0.75, 0.75)))
-
-
-# ### pointcloud-to-mesh
-
-# In[12]:
-
-
-from PIL import Image
-import torch
-import matplotlib.pyplot as plt
-from tqdm.auto import tqdm
-
-from point_e.models.download import load_checkpoint
-from point_e.models.configs import MODEL_CONFIGS, model_from_config
-from point_e.util.pc_to_mesh import marching_cubes_mesh
-from point_e.util.plotting import plot_point_cloud
-from point_e.util.point_cloud import PointCloud
-
-
-# In[13]:
-
-
-# Signed distance field model
-print('creating SDF model...')
-name = 'sdf'
-model = model_from_config(MODEL_CONFIGS[name], device)
-model.eval()
-
-print('loading SDF model...')
-model.load_state_dict(load_checkpoint(name, device))
-
-
-# In[14]:
-
-
-# Produce a mesh (with vertex colors)
-mesh = marching_cubes_mesh(
-    pc=pc,
-    model=model,
-    batch_size=4096,
-    grid_size=32, # increase to 128 for resolution used in evals
-    progress=True,
-)
-
-
-# In[15]:
-
-
-# Write the mesh to a PLY file to import into some other program.
-# with open('mesh.ply', 'wb') as f:
-#    mesh.write_ply(f)
-from mpl_toolkits.mplot3d import Axes3D
-
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.plot_trisurf(mesh.verts[:, 0], mesh.verts[:,1], triangles=mesh.faces, Z=mesh.verts[:,2]) 
-plt.show()
 

@@ -115,4 +115,5 @@ samples = None
 for x in tqdm(sampler.sample_batch_progressive(batch_size=1, model_kwargs=dict(images=[generated_image]))):
     samples = x
 
+samples = samples.numpy()
 print(samples)

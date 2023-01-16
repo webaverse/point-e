@@ -119,7 +119,7 @@ samples = samples.cpu()
 samples = samples.numpy()
 # convert to float32
 samples = samples.astype('float32')
-print(len(samples))
+print(samples)
 # convery tp bytes
 samples_bytes = samples.tobytes()
 print(len(samples_bytes))

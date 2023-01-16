@@ -71,7 +71,7 @@ generated_image = Image.open('girl2.png')
 # In[7]:
 
 
-base_name = 'base300M' # base40M, use base300M or base1B for better results
+base_name = 'base1B' # base40M, use base300M or base1B for better results
 n_points = 1024
 final_n_points = 4096
 MODEL_CONFIGS[base_name]["n_ctx"] = n_points

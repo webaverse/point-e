@@ -117,4 +117,12 @@ for x in tqdm(sampler.sample_batch_progressive(batch_size=1, model_kwargs=dict(i
 
 samples = samples.cpu()
 samples = samples.numpy()
-print(samples)
+# convert to float32
+samples = samples.astype('float32')
+print(len(samples))
+# convery tp bytes
+samples_bytes = samples.tobytes()
+print(len(samples_bytes))
+# write to bytes.dat
+with open('bytes.dat', 'wb') as f:
+    f.write(samples_bytes)

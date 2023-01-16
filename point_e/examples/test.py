@@ -124,7 +124,7 @@ print(pc.coords)
 print(pc.coords.shape)
 
 coords = pc.coords
-coords = coords.cpu()
+# coords = coords.cpu()
 coords = coords.numpy()
 # convert to float32
 coords = coords.astype('float32')

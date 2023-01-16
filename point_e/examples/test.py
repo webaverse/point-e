@@ -124,5 +124,5 @@ print(len(samples))
 samples_bytes = samples.tobytes()
 print(len(samples_bytes))
 # write to bytes.dat
-with open('bytes.dat', 'wb') as f:
+with open('./pointcloud.f32', 'wb') as f:
     f.write(samples_bytes)

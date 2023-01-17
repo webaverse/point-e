@@ -27,6 +27,7 @@ from point_e.models.download import load_checkpoint
 from point_e.models.configs import MODEL_CONFIGS, model_from_config
 from point_e.util.plotting import plot_point_cloud
 
+import numpy as np
 import sys
 
 # read the first argument

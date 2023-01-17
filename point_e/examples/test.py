@@ -139,7 +139,7 @@ coords_bytes = coords.tobytes()
 print(len(coords_bytes))
 
 colors = np.stack([pc.channels[x] for x in "RGB"], axis=1)
-colors = coords.astype('float32')
+colors = colors.astype('float32')
 print(colors)
 colors_bytes = colors.tobytes()
 print(len(colors_bytes))

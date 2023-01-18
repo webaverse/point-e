@@ -87,9 +87,12 @@ def pointe():
         # print("got options 2")
         return response
 
+    print(f"read body 1")
     body = flask.request.get_data()
+    print(f"read body 2")
 
     generated_image = cv2.imdecode(np.frombuffer(body, np.uint8), cv2.IMREAD_COLOR)
+    print(f"read body 3")
 
     # Produce a sample from the model.
     samples = None

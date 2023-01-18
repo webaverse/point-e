@@ -73,7 +73,7 @@ app = flask.Flask(__name__)
 
 # serve api routes
 @app.route("/pointe", methods=["POST", "OPTIONS"])
-def predict():
+def pointe():
     if (flask.request.method == "OPTIONS"):
         # print("got options 1")
         response = flask.Response()

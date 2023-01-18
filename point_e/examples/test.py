@@ -62,8 +62,8 @@ sampler = PointCloudSampler(
     diffusions=[base_diffusion, upsampler_diffusion],
     num_points=[n_points, final_n_points - n_points], # points in cloud and missing ones for upsampling
     aux_channels=['R', 'G', 'B'],
-    guidance_scale=[3.0, 3.0],
-    # guidance_scale=[10.0, 10.0],
+    # guidance_scale=[3.0, 3.0],
+    guidance_scale=[10.0, 10.0],
 )
 
 ###

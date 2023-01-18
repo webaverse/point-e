@@ -12,8 +12,6 @@
 
 # convert girl.png -resize 512x512 -background white -gravity center -extent 512x512 girl2.png
 
-# In[1]:
-
 
 from PIL import Image
 import torch
@@ -28,53 +26,13 @@ from point_e.models.configs import MODEL_CONFIGS, model_from_config
 from point_e.util.plotting import plot_point_cloud
 
 import numpy as np
-import sys
+# import sys
+import cv2
+import flask
 
-# read the first argument
-arg = sys.argv[1]
-
-# In[2]:
-
+###
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-
-# ### text-to-img
-
-# In[3]:
-
-
-# from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
-
-# load girl.png
-generated_image = Image.open(arg)
-
-
-# In[4]:
-
-
-# plt.imshow(generated_image)
-
-
-# In[5]:
-
-
-# PILtoTensor = trans#forms.ToTensor()
-#generated_image = PILtoTensor(generated_image)
-
-# del pipe
-
-
-# In[6]:
-
-
-# torch.cuda.empty_cache()
-
-
-# ### img-to-pointcloud
-
-# In[7]:
-
 
 base_name = 'base1B' # base40M, use base300M or base1B for better results
 n_points = 1024
@@ -98,10 +56,6 @@ base_model.load_state_dict(load_checkpoint(base_name, device))
 print('downloading upsampler checkpoint...')
 upsampler_model.load_state_dict(load_checkpoint('upsample', device))
 
-
-# In[8]:
-
-
 sampler = PointCloudSampler(
     device=device,
     models=[base_model, upsampler_model],
@@ -109,44 +63,81 @@ sampler = PointCloudSampler(
     num_points=[n_points, final_n_points - n_points], # points in cloud and missing ones for upsampling
     aux_channels=['R', 'G', 'B'],
     guidance_scale=[3.0, 3.0],
+    # guidance_scale=[10.0, 10.0],
 )
 
+###
 
-# In[9]:
+# flask server
+app = flask.Flask(__name__)
 
+# serve api routes
+@app.route("/pointe", methods=["POST", "OPTIONS"])
+def predict():
+    if (flask.request.method == "OPTIONS"):
+        # print("got options 1")
+        response = flask.Response()
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Expose-Headers"] = "*"
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+        response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+        response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+        # print("got options 2")
+        return response
 
-# Produce a sample from the model.
-samples = None
-for x in tqdm(sampler.sample_batch_progressive(batch_size=1, model_kwargs=dict(images=[generated_image]))):
-    samples = x
+    body = flask.request.get_data()
 
-print(samples.shape)
+    generated_image = cv2.imdecode(np.frombuffer(body, np.uint8), cv2.IMREAD_COLOR)
 
-pc = sampler.output_to_point_clouds(samples)[0]
+    # Produce a sample from the model.
+    samples = None
+    for x in tqdm(sampler.sample_batch_progressive(batch_size=1, model_kwargs=dict(images=[generated_image]))):
+        samples = x
 
-print(pc)
-print(pc.coords)
-print(pc.coords.shape)
+    print(samples.shape)
 
-coords = pc.coords
-# coords = coords.cpu()
-# coords = coords.numpy()
-# convert to float32
-coords = coords.astype('float32')
-print(coords)
-# convert to bytes
-coords_bytes = coords.tobytes()
-print(len(coords_bytes))
+    pc = sampler.output_to_point_clouds(samples)[0]
 
-colors = np.stack([pc.channels[x] for x in "RGB"], axis=1)
-colors = colors.astype('float32')
-print(colors)
-colors_bytes = colors.tobytes()
-print(len(colors_bytes))
+    print(pc)
+    print(pc.coords)
+    print(pc.coords.shape)
 
-# concatenate
-result_bytes = coords_bytes + colors_bytes
+    coords = pc.coords
+    # coords = coords.cpu()
+    # coords = coords.numpy()
+    # convert to float32
+    coords = coords.astype('float32')
+    print(coords)
+    # convert to bytes
+    coords_bytes = coords.tobytes()
+    print(len(coords_bytes))
 
-# write to bytes.dat
-with open('./pointcloud.f32', 'wb') as f:
-    f.write(result_bytes)
+    colors = np.stack([pc.channels[x] for x in "RGB"], axis=1)
+    colors = colors.astype('float32')
+    print(colors)
+    colors_bytes = colors.tobytes()
+    print(len(colors_bytes))
+
+    # concatenate
+    result_bytes = coords_bytes + colors_bytes
+
+    # write to file
+    # with open('./pointcloud.f32', 'wb') as f:
+    #     f.write(result_bytes)
+    
+    # return the result
+    response = flask.Response(result_bytes)
+    response.headers["Content-Type"] = "application/octet-stream"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Expose-Headers"] = "*"
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+    response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+    return response
+
+# listen as a threaded server on 0.0.0.0:80
+app.run(host="0.0.0.0", port=8000, threaded=False)
